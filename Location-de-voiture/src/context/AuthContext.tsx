@@ -1,9 +1,14 @@
+import { createContext, useContext, useState } from 'react'
+import type { ReactNode } from 'react'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+export interface User {
+  name: string
+  email: string
+}
 
 interface AuthContextType {
   isAuthenticated: boolean
-  user: { name: string; email: string } | null
+  user: User | null
   login: (email: string, password: string) => boolean
   logout: () => void
 }
@@ -11,17 +16,22 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
+  const [user, setUser] = useState<User | null>(
     () => {
       const saved = localStorage.getItem('auth_user')
-      return saved ? JSON.parse(saved) : null
+      try {
+        return saved ? JSON.parse(saved) : null
+      } catch (error) {
+        console.error("Erreur de parsing auth_user:", error)
+        return null
+      }
     }
   )
 
   const login = (email: string, password: string): boolean => {
     
     if (email && password.length >= 6) {
-      const mockUser = { name: 'Client Demo', email }
+      const mockUser: User = { name: 'Client Demo', email }
       setUser(mockUser)
       localStorage.setItem('auth_user', JSON.stringify(mockUser))
       return true
